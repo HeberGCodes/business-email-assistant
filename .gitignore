@@ -1,0 +1,14 @@
+# Virtual environment
+venv/
+
+# Python compiled files
+__pycache__/
+
+# Database files
+db.sqlite3
+
+# Django secret key
+*.env
+
+# VS Code settings
+.vscode/
