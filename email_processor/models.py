@@ -6,7 +6,7 @@ class Email(models.Model):
     body = models.TextField()
     date_received = models.DateTimeField()
     
-    # AI fields for future use
+    # AI fields
     summary = models.TextField(blank=True, null=True)
     sentiment = models.CharField(max_length=50, blank=True, null=True) # positive, negative, neutral
     

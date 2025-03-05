@@ -14,8 +14,8 @@ load_dotenv(BASE_DIR / ".env")
 # IMAP settings
 IMAP_SERVER = os.getenv("IMAP_SERVER", "imap.gmail.com")
 IMAP_PORT = int(os.getenv("IMAP_PORT", 993))
-EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT") # Your email account
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD") # Your email password
+EMAIL_ACCOUNT = os.getenv("EMAIL_ACCOUNT") 
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD") 
 
 def decode_mime_words(value):
     """Safely decode MIME encoded words in email headers to str"""
@@ -26,8 +26,15 @@ def decode_mime_words(value):
     ])
 
 def fetch_emails():
+    """
+    Fetches UNSEEN emails from your IMAP inbox, stores them in the Email model,
+    and returns a list of the newly created Email object IDs.
+    """
+    
+    new_ids = [] # List to store the IDs of new emails
+    
     try:
-        # Connect to gmail imap  server
+        # Connect to Gmail IMAP server
         mail = imaplib.IMAP4_SSL(IMAP_SERVER, IMAP_PORT)
         mail.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
         
@@ -53,7 +60,7 @@ def fetch_emails():
             # Decode the email sender safely
             sender = decode_mime_words(msg.get("From")) if msg["From"] else "Unknown Sender"
                 
-            # Extract the email body (text/pain or text/html)
+            # Extract the email body (plaintext or HTML)
             body = ""
             if msg.is_multipart():
                 for part in msg.walk():
@@ -66,18 +73,24 @@ def fetch_emails():
             else:
                 body = msg.get_payload(decode=True).decode("utf-8", errors="ignore")
                 
-            # Save the email to the database
-            Email.objects.create(
+            # Create the email object in the database
+            email_obj = Email.objects.create(
                 sender=sender,
                 subject=subject,
                 body=body,
                 date_received=now()
             )
             
+            # Append newly created email ID to the list
+            new_ids.append(email_obj.id)
+            
             print(f"Saved email: {subject} from {sender}")
             
-        # Close connection
+        # Close IMAP connection
         mail.logout()
     
     except Exception as e:
         print(f"Error fetching emails: {e}")
+
+    # Return the list of newly created email IDs
+    return new_ids
